@@ -45,6 +45,7 @@ private:
   static void __stdcall cbTransfer(libusb_transfer*);
 
   std::array<uint8_t, kInputBufferSize> m_inputBuffer;
+  std::array<uint8_t, kInputBufferSize> m_inputBufferAsync;
   libusb_device_handle* m_pCurrentDevice;
 
   DeviceHandle::tCbRead m_cbRead;

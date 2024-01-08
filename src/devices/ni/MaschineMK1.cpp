@@ -410,19 +410,7 @@ bool MaschineMK1::read()
     return false;
   }
 
-  switch (input[0])
-  {
-  case 0x01:
-  case 0x02:
-  case 0x03:
-  case 0x04:
-  case 0x0C:
-    break;
-  
-  default:
-    processPads(input);
-    break;
-  }
+  processPads(input);
 
   return true;
 }

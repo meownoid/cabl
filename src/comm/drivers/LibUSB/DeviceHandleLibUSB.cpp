@@ -119,7 +119,7 @@ void DeviceHandleLibUSB::readAsyncImpl(uint8_t endpoint_)
   libusb_fill_bulk_transfer(pTransfer,
     m_pCurrentDevice,
     endpoint_,
-    m_inputBuffer.data(),
+    m_inputBufferAsync.data(),
     kInputBufferSize,
     cbTransfer,
     this,
@@ -137,12 +137,14 @@ void DeviceHandleLibUSB::readAsyncImpl(uint8_t endpoint_)
 void DeviceHandleLibUSB::cbTransfer(libusb_transfer* pTransfer_)
 {
   DeviceHandleLibUSB* pSelf = static_cast<DeviceHandleLibUSB*>(pTransfer_->user_data);
-  if (pSelf->m_cbRead && pTransfer_->status == LIBUSB_TRANSFER_COMPLETED
-      && pTransfer_->actual_length > 0)
+  if (pSelf->m_cbRead && pTransfer_->status == LIBUSB_TRANSFER_COMPLETED && pTransfer_->actual_length > 0)
   {
     tRawData data(pTransfer_->buffer, pTransfer_->buffer + pTransfer_->actual_length);
     pSelf->m_cbRead({data});
+  } else {
+    M_LOG("[DeviceHandleLibUSB] cbTransfer: error=" << pTransfer_->status);
   }
+
   if (pSelf->m_pCurrentDevice)
   {
     pSelf->readAsyncImpl(pTransfer_->endpoint);
