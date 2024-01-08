@@ -70,6 +70,7 @@ void DeviceTest::render()
 
 void DeviceTest::buttonChanged(Device::Button button_, bool buttonState_, bool shiftState_)
 {
+  std::cout << "Button Changed (" << std::to_string((uint8_t)button_) << ", " << std::to_string(buttonState_) << ", " << std::to_string(shiftState_) << ")" << std::endl;
   device()->setButtonLed(
     button_, buttonState_ ? (shiftState_ ? kColor_Red : kColor_Yellow) : kColor_Black);
 }
@@ -78,6 +79,7 @@ void DeviceTest::buttonChanged(Device::Button button_, bool buttonState_, bool s
 
 void DeviceTest::encoderChanged(unsigned encoder_, bool valueIncreased_, bool shiftPressed_)
 {
+  std::cout << "Encoder Changed (" << std::to_string(encoder_) << ", " << std::to_string(valueIncreased_) << ", " << std::to_string(shiftPressed_) << ")" << std::endl;
   std::string value = "Enc#" + std::to_string(static_cast<int>(encoder_)) + ( valueIncreased_ ? " increased" : " decreased" );
 
   device()->textDisplay(0)->putText(value.c_str(), 0);
@@ -91,6 +93,7 @@ void DeviceTest::encoderChanged(unsigned encoder_, bool valueIncreased_, bool sh
 
 void DeviceTest::keyChanged(unsigned index_, double value_, bool shiftPressed_)
 {
+  std::cout << "Key Changed (" << std::to_string(index_) << ", " << std::to_string(value_) << ", " << std::to_string(shiftPressed_) << ")" << std::endl;
   device()->setKeyLed(index_, {static_cast<uint8_t>(value_ * 0xff)});
 }
 
@@ -98,6 +101,7 @@ void DeviceTest::keyChanged(unsigned index_, double value_, bool shiftPressed_)
 
 void DeviceTest::controlChanged(unsigned pot_, double value_, bool shiftPressed_)
 {
+  std::cout << "Control Changed (" << std::to_string(pot_) << ", " << std::to_string(value_) << ", " << std::to_string(shiftPressed_) << ")" << std::endl;
   std::string value = "Pot#" + std::to_string(static_cast<int>(pot_)) + " " + std::to_string(static_cast<int>(value_ * 100));
 
   device()->textDisplay(0)->putText(value.c_str(), 0);

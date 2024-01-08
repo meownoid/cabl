@@ -9,7 +9,7 @@
 
 namespace
 {
-unsigned kLibUSBReadTimeout = 50;   // Timeout of a input bulk transfer  (0 = NO timeout)
+unsigned kLibUSBReadTimeout = 10;   // Timeout of a input bulk transfer  (0 = NO timeout)
 unsigned kLibUSBWriteTimeout = 100; // Timeout of a output bulk transfer (0 = NO timeout)
 } // namespace
 
@@ -37,12 +37,13 @@ DeviceHandleLibUSB::~DeviceHandleLibUSB()
 
 void DeviceHandleLibUSB::disconnect()
 {
-  if (m_pCurrentDevice != nullptr)
-  {
-    libusb_close(m_pCurrentDevice);
-    M_LOG("[DeviceHandleLibUSB] disconnect: device closed");
-    m_pCurrentDevice = nullptr;
-  }
+  if (m_pCurrentDevice == nullptr)
+    return;
+  
+  libusb_close(m_pCurrentDevice);
+  m_pCurrentDevice = nullptr;
+
+  M_LOG("[DeviceHandleLibUSB] disconnect: device closed");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -58,11 +59,16 @@ bool DeviceHandleLibUSB::read(Transfer& transfer_, uint8_t endpoint_)
     kLibUSBReadTimeout                                // Timeout
     );
 
-  if ((LIBUSB_SUCCESS == result) && (nBytesRead > 0))
+  if ((result == LIBUSB_SUCCESS) && (nBytesRead > 0))
   {
     transfer_.setData(m_inputBuffer.data(), nBytesRead);
     return transfer_;
   }
+
+  M_LOG(
+    "[DeviceHandleLibUSB] read: error=" << result << " - transfer size: " << transfer_.size()
+                                          << " read: "
+                                          << nBytesRead);
 
   return false;
 }
@@ -81,7 +87,7 @@ bool DeviceHandleLibUSB::write(const Transfer& transfer_, uint8_t endpoint_)
       &nBytesWritten,                                   // N. of bytes actually written
       kLibUSBWriteTimeout                               // Timeout
       );
-    if ((LIBUSB_SUCCESS != result) || (nBytesWritten != transfer_.size()))
+    if ((result != LIBUSB_SUCCESS) || (nBytesWritten != transfer_.size()))
     {
       M_LOG(
         "[DeviceHandleLibUSB] write: error=" << result << " - transfer size: " << transfer_.size()
@@ -116,8 +122,12 @@ void DeviceHandleLibUSB::readAsyncImpl(uint8_t endpoint_)
     cbTransfer,
     this,
     kLibUSBReadTimeout);
-  libusb_submit_transfer(pTransfer);
-  //!\todo check libusb_submit_transfer return code
+
+  int result = libusb_submit_transfer(pTransfer);
+
+  if (result != LIBUSB_SUCCESS) {
+    M_LOG("[DeviceHandleLibUSB] async read: error=" << result);
+  }
 }
 
 //--------------------------------------------------------------------------------------------------
