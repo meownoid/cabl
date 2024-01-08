@@ -253,12 +253,12 @@ void MaschineMK1::init()
   sendFrame(0);
   sendFrame(1);
 
-  writeToDeviceHandle(Transfer({0x0B, 0xFF, 0x02, 0x05}), kMASMK1_epOut);
+  // writeToDeviceHandle(Transfer({0x0B, 0xFF, 0x02, 0x05}), kMASMK1_epOut);
 
   std::fill(m_leds.begin(), m_leds.end(), 0);
   m_isDirtyLedGroup0 = true;
   m_isDirtyLedGroup1 = true;
-  sendLeds();
+  // sendLeds();
 
   readFromDeviceHandleAsync(
     kMASMK1_epInputButtonsAndDials, std::bind(&MaschineMK1::cbRead, this, std::placeholders::_1));

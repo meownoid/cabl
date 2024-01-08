@@ -100,7 +100,7 @@ DriverLibUSB::DriverLibUSB() : m_usbThreadRunning(true)
 {
   libusb_init(&m_pContext);
 #if !defined(NDEBUG)
-  libusb_set_debug(m_pContext, 3);
+  libusb_set_debug(m_pContext, 1);
 #endif
 
   libusb_hotplug_register_callback(m_pContext,

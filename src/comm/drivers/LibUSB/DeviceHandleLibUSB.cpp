@@ -9,8 +9,8 @@
 
 namespace
 {
-unsigned kLibUSBReadTimeout = 2;   // Timeout of a input bulk transfer  (0 = NO timeout)
-unsigned kLibUSBWriteTimeout = 50; // Timeout of a output bulk transfer (0 = NO timeout)
+unsigned kLibUSBReadTimeout = 50;   // Timeout of a input bulk transfer  (0 = NO timeout)
+unsigned kLibUSBWriteTimeout = 100; // Timeout of a output bulk transfer (0 = NO timeout)
 } // namespace
 
 namespace sl
