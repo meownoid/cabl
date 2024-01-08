@@ -117,7 +117,9 @@ enum class MaschineMK1::Button : uint8_t
   Pattern,
   Scene,
 
-  Rec = 9,
+  Unused,
+
+  Rec,
   Erase,
   Shift,
   Grid,
@@ -154,6 +156,7 @@ enum class MaschineMK1::Button : uint8_t
 
   NoteRepeat,
   Play,
+  Last,
 };
 
 //--------------------------------------------------------------------------------------------------
@@ -457,36 +460,62 @@ void MaschineMK1::processPads(const Transfer& input_)
 
 void MaschineMK1::processButtons(const Transfer& input_)
 {
+  if ((input_.data()[6] & 0x40) == 0)
+    return;
+
   bool shiftPressed(isButtonPressed(input_, Button::Shift));
   m_buttonStates[static_cast<unsigned>(Button::Shift)] = shiftPressed;
 
-  Device::Button changedButton(Device::Button::Unknown);
-  bool buttonPressed(false);
-  if ((input_.data()[6] & 0x40) == 0)
+  for (unsigned i = 0; i < static_cast<unsigned>(Button::Last); i++)
   {
-    return;
-  }
-  for (int i = 0; i < kMASMK1_buttonsDataSize; i++)
-  {
-    for (int k = 0; k < 8; k++)
+    Button currentButton(static_cast<Button>(i));
+    if (currentButton == Button::Shift || currentButton == Button::Unused)
     {
-      uint8_t btn = (i * 8) + k;
-      Button currentButton(static_cast<Button>(btn));
-      if (currentButton == Button::Shift || currentButton > Button::Play)
-      {
-        continue;
-      }
-      buttonPressed = isButtonPressed(input_, currentButton);
-      if (buttonPressed != m_buttonStates[btn])
-      {
-        m_buttonStates[btn] = buttonPressed;
-        changedButton = deviceButton(currentButton);
-        if (changedButton != Device::Button::Unknown)
-        {
-          buttonChanged(changedButton, buttonPressed, shiftPressed);
-        }
-      }
+      if (currentButton == Button::GroupG)
+        M_LOG("A");
+      continue;
     }
+
+    bool buttonPressed = isButtonPressed(input_, currentButton);
+    if (buttonPressed == m_buttonStates[i])
+    {
+      if (currentButton == Button::GroupG) M_LOG("B");
+      continue;
+    }
+
+    m_buttonStates[i] = buttonPressed;
+    buttonChanged(deviceButton(currentButton), buttonPressed, shiftPressed);
+  }
+}
+
+void MaschineMK1::processButtons0(const Transfer& input_)
+{
+  if ((input_.data()[6] & 0x40) == 0)
+    return;
+
+  bool shiftPressed(isButtonPressed(input_, Button::Shift));
+  m_buttonStates[static_cast<unsigned>(Button::Shift)] = shiftPressed;
+
+  for (unsigned i = 0; i < static_cast<unsigned>(Button::Last); i++)
+  {
+    if (m_buttonStates[i] == false) {
+      continue;
+    }
+
+    Button currentButton(static_cast<Button>(i));
+    if (currentButton == Button::Shift || currentButton == Button::Unused)
+    {
+      continue;
+    }
+
+    bool buttonPressed = isButtonPressed(input_, currentButton);
+    if (buttonPressed == m_buttonStates[i])
+    {
+      continue;
+    }
+
+    m_buttonStates[i] = buttonPressed;
+    buttonChanged(deviceButton(currentButton), buttonPressed, shiftPressed);
   }
 }
 
@@ -734,6 +763,7 @@ Device::Button MaschineMK1::deviceButton(Button btn_) const noexcept
 
 void MaschineMK1::cbRead(Transfer input_)
 {
+  std::lock_guard<std::mutex> lock(m_cbReadMutex);
   // M_LOG("CBREAD " << std::to_string(input_[0]));
   if (input_[0] == 0x00)
   {

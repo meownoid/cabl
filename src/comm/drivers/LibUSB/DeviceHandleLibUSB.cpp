@@ -9,8 +9,10 @@
 
 namespace
 {
-unsigned kLibUSBReadTimeout = 5;   // Timeout of a input bulk transfer  (0 = NO timeout)
-unsigned kLibUSBWriteTimeout = 50; // Timeout of a output bulk transfer (0 = NO timeout)
+// (0 = NO timeout)
+unsigned kLibUSBReadTimeout = 2;
+unsigned kLibUSBWriteTimeout = 50;
+unsigned kLibUSBReadAsyncTimeout = 0;
 } // namespace
 
 namespace sl
@@ -121,7 +123,7 @@ void DeviceHandleLibUSB::readAsyncImpl(uint8_t endpoint_)
     kInputBufferSize,
     cbTransfer,
     this,
-    kLibUSBReadTimeout);
+    kLibUSBReadAsyncTimeout);
 
   int result = libusb_submit_transfer(pTransfer);
 
