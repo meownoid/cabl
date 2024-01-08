@@ -233,7 +233,7 @@ bool MaschineMK1::tick()
     M_LOG("[MaschineMK1] tick: error in step #" << state << " (" << strStepName << ")");
   }
 
-  if (++state >= 3)
+  if (++state > 2)
   {
     state = 0;
   }
@@ -244,6 +244,7 @@ bool MaschineMK1::tick()
 
 void MaschineMK1::init()
 {
+  M_LOG("[MaschineMK1] init");
   // Displays
   for (int i = 0; i < kMASMK1_nDisplays; i++)
   {
@@ -253,12 +254,12 @@ void MaschineMK1::init()
   sendFrame(0);
   sendFrame(1);
 
-  // writeToDeviceHandle(Transfer({0x0B, 0xFF, 0x02, 0x05}), kMASMK1_epOut);
+  writeToDeviceHandle(Transfer({0x0B, 0xFF, 0x02, 0x05}), kMASMK1_epOut);
 
   std::fill(m_leds.begin(), m_leds.end(), 0);
   m_isDirtyLedGroup0 = true;
   m_isDirtyLedGroup1 = true;
-  // sendLeds();
+  sendLeds();
 
   readFromDeviceHandleAsync(
     kMASMK1_epInputButtonsAndDials, std::bind(&MaschineMK1::cbRead, this, std::placeholders::_1));
@@ -399,7 +400,6 @@ bool MaschineMK1::sendLeds()
 
 bool MaschineMK1::read()
 {
-
   Transfer input;
   if (!readFromDeviceHandle(input, kMASMK1_epInputPads))
   {
@@ -407,10 +407,20 @@ bool MaschineMK1::read()
     return false;
   }
 
-  if (input[0] != 2) // Strange but I had to add this filter to avoid strange pad updates when turning encoders.
+  switch (input[0])
   {
+  case 0x01:
+  case 0x02:
+  case 0x03:
+  case 0x04:
+  case 0x0C:
+    break;
+  
+  default:
     processPads(input);
+    break;
   }
+
   return true;
 }
 
@@ -473,7 +483,6 @@ void MaschineMK1::processButtons(const Transfer& input_)
         changedButton = deviceButton(currentButton);
         if (changedButton != Device::Button::Unknown)
         {
-          //    std::copy(&input_[1],&input_[kMikroMK2_buttonsDataSize],m_buttons.begin());
           buttonChanged(changedButton, buttonPressed, shiftPressed);
         }
       }
@@ -725,7 +734,12 @@ Device::Button MaschineMK1::deviceButton(Button btn_) const noexcept
 
 void MaschineMK1::cbRead(Transfer input_)
 {
-  if (input_[0] == 0x02)
+  // M_LOG("CBREAD " << std::to_string(input_[0]));
+  if (input_[0] == 0x00)
+  {
+    // unknown
+  }
+  else if (input_[0] == 0x02)
   {
     processEncoders(input_);
   }
@@ -736,16 +750,15 @@ void MaschineMK1::cbRead(Transfer input_)
   else if (input_[0] == 0x06)
   {
     M_LOG("[MaschineMK1] read: received MIDI message");
-    //!\todo Add MIDI in parsing
   }
-}
-
-//--------------------------------------------------------------------------------------------------
-
-bool MaschineMK1::isButtonPressed(Button button_) const noexcept
-{
-  uint8_t buttonPos = static_cast<uint8_t>(button_);
-  return ((m_buttons[buttonPos >> 3] & (1 << (buttonPos % 8))) != 0);
+  else if (input_[0] == 0x0C)
+  {
+    // unknown
+  }
+  else
+  {
+    M_LOG("[MaschineMK1] read: unknown input at index 0: " << std::to_string(input_[0]));
+  }
 }
 
 //--------------------------------------------------------------------------------------------------

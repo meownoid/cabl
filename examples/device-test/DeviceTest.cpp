@@ -93,8 +93,14 @@ void DeviceTest::encoderChanged(unsigned encoder_, bool valueIncreased_, bool sh
 
 void DeviceTest::keyChanged(unsigned index_, double value_, bool shiftPressed_)
 {
+  float keyThreshold = 0.1;
+
+  if (value_ < keyThreshold) {
+    value_ = 0.0;
+  }
+
   std::cout << "Key Changed (" << std::to_string(index_) << ", " << std::to_string(value_) << ", " << std::to_string(shiftPressed_) << ")" << std::endl;
-  device()->setKeyLed(index_, {static_cast<uint8_t>(value_ * 0xff)});
+  device()->setKeyLed(index_, {static_cast<uint8_t>(value_ * 127)});
 }
 
 //--------------------------------------------------------------------------------------------------

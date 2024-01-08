@@ -89,7 +89,6 @@ private:
 
   void cbRead(Transfer);
 
-  bool isButtonPressed(Button button) const noexcept;
   bool isButtonPressed(const Transfer&, Button button_) const noexcept;
 
   GDisplayMaschineMK1 m_displays[kMASMK1_nDisplays];
