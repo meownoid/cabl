@@ -488,37 +488,6 @@ void MaschineMK1::processButtons(const Transfer& input_)
   }
 }
 
-void MaschineMK1::processButtons0(const Transfer& input_)
-{
-  if ((input_.data()[6] & 0x40) == 0)
-    return;
-
-  bool shiftPressed(isButtonPressed(input_, Button::Shift));
-  m_buttonStates[static_cast<unsigned>(Button::Shift)] = shiftPressed;
-
-  for (unsigned i = 0; i < static_cast<unsigned>(Button::Last); i++)
-  {
-    if (m_buttonStates[i] == false) {
-      continue;
-    }
-
-    Button currentButton(static_cast<Button>(i));
-    if (currentButton == Button::Shift || currentButton == Button::Unused)
-    {
-      continue;
-    }
-
-    bool buttonPressed = isButtonPressed(input_, currentButton);
-    if (buttonPressed == m_buttonStates[i])
-    {
-      continue;
-    }
-
-    m_buttonStates[i] = buttonPressed;
-    buttonChanged(deviceButton(currentButton), buttonPressed, shiftPressed);
-  }
-}
-
 //--------------------------------------------------------------------------------------------------
 
 void MaschineMK1::processEncoders(const Transfer& input_)
