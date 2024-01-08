@@ -471,15 +471,12 @@ void MaschineMK1::processButtons(const Transfer& input_)
     Button currentButton(static_cast<Button>(i));
     if (currentButton == Button::Shift || currentButton == Button::Unused)
     {
-      if (currentButton == Button::GroupG)
-        M_LOG("A");
       continue;
     }
 
     bool buttonPressed = isButtonPressed(input_, currentButton);
     if (buttonPressed == m_buttonStates[i])
     {
-      if (currentButton == Button::GroupG) M_LOG("B");
       continue;
     }
 
