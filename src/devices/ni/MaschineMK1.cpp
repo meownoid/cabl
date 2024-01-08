@@ -730,10 +730,10 @@ Device::Button MaschineMK1::deviceButton(Button btn_) const noexcept
 void MaschineMK1::cbRead(Transfer input_)
 {
   std::lock_guard<std::mutex> lock(m_cbReadMutex);
-  // M_LOG("CBREAD " << std::to_string(input_[0]));
   if (input_[0] == 0x00)
   {
-    // unknown
+    // sometimes arrive when buttons are pressed, but
+    // do not contin any useful information
   }
   else if (input_[0] == 0x02)
   {
@@ -749,7 +749,7 @@ void MaschineMK1::cbRead(Transfer input_)
   }
   else if (input_[0] == 0x0C)
   {
-    // unknown
+    // always empty
   }
   else
   {
