@@ -16,7 +16,9 @@ See: http://stackoverflow.com/questions/19415845/a-better-log-macro-using-templa
 */
 
 #include <iostream>
-#define M_LOG(msg) (sl::cabl::Log(__TIME__, sl::cabl::LogData<sl::cabl::None>() << msg))
+#include <chrono>
+#include <string>
+#define M_LOG(msg) (sl::cabl::Log(sl::cabl::LogData<sl::cabl::None>() << msg))
 
 // Workaround GCC 4.7.2 not recognizing noinline attribute
 #ifndef NOINLINE_ATTRIBUTE
@@ -49,9 +51,13 @@ struct LogData
 //--------------------------------------------------------------------------------------------------
 
 template <typename List>
-void Log(const char* time, LogData<List>&& data) NOINLINE_ATTRIBUTE
+void Log(LogData<List>&& data) NOINLINE_ATTRIBUTE
 {
-  std::cout << time << ": ";
+  char buf[100] = {0};
+  std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  std::strftime(buf, sizeof(buf), "%H:%M:%S", std::localtime(&now));
+
+  std::cout << std::string(buf) << ": ";
   output(std::cout, std::move(data.list));
   std::cout << std::endl;
 }
