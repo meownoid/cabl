@@ -104,8 +104,6 @@ private:
   bool m_isDirtyLedGroup0{true};
   bool m_isDirtyLedGroup1{true};
   bool m_encodersInitialized{false};
-
-  std::mutex m_cbReadMutex;
 };
 
 //--------------------------------------------------------------------------------------------------
