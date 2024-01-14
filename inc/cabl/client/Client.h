@@ -31,6 +31,7 @@ public:
   virtual void buttonChanged(Device::Button button_, bool buttonState_, bool shiftPressed_);
   virtual void encoderChanged(unsigned encoder_, bool valueIncreased_, bool shiftPressed_);
   virtual void keyChanged(unsigned index_, double value_, bool shiftPressed);
+  virtual void keyUpdated(unsigned index_, double value_, bool shiftPressed);
   virtual void controlChanged(unsigned pot_, double value_, bool shiftPressed);
 
   virtual void initDevice()

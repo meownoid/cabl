@@ -125,6 +125,13 @@ void Device::setCallbackKeyChanged(tCbKeyChanged cbKeyChanged_)
 
 //--------------------------------------------------------------------------------------------------
 
+void Device::setCallbackKeyUpdated(tCbKeyChanged cbKeyUpdated_)
+{
+  m_cbKeyUpdated = cbKeyUpdated_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Device::setCallbackControlChanged(tCbControlChanged cbControlChanged_)
 {
   m_cbControlChanged = cbControlChanged_;
@@ -203,6 +210,16 @@ void Device::keyChanged(unsigned index_, double value_, bool shiftPressed_)
   if (m_cbKeyChanged)
   {
     m_cbKeyChanged(index_, value_, shiftPressed_);
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Device::keyUpdated(unsigned index_, double value_, bool shiftPressed_)
+{
+  if (m_cbKeyUpdated)
+  {
+    m_cbKeyUpdated(index_, value_, shiftPressed_);
   }
 }
 

@@ -210,6 +210,7 @@ public:
   using tCbButtonChanged = std::function<void(Button btn_, bool state_, bool shiftKey_)>;
   using tCbEncoderChanged = std::function<void(unsigned enc_, bool valIncreased_, bool shiftKey_)>;
   using tCbKeyChanged = std::function<void(unsigned index_, double, bool shiftKey_)>;
+  using tCbKeyUpdated = std::function<void(unsigned index_, double, bool shiftKey_)>;
   using tCbControlChanged = std::function<void(unsigned pot_, double val_, bool shiftKey_)>;
 
   Device() = default;
@@ -253,6 +254,8 @@ public:
 
   void setCallbackKeyChanged(tCbKeyChanged cbKeyChanged_);
 
+  void setCallbackKeyUpdated(tCbKeyUpdated cbKeyUpdated_);
+
   void setCallbackControlChanged(tCbControlChanged cbControlChanged_);
 
   bool hasDeviceHandle();
@@ -272,6 +275,8 @@ protected:
 
   void keyChanged(unsigned index_, double value_, bool shiftPressed_);
 
+  void keyUpdated(unsigned index_, double value_, bool shiftPressed_);
+
   void controlChanged(unsigned potentiometer_, double value_, bool shiftPressed_);
 
 private:
@@ -290,6 +295,7 @@ private:
   tCbButtonChanged m_cbButtonChanged;
   tCbEncoderChanged m_cbEncoderChanged;
   tCbKeyChanged m_cbKeyChanged;
+  tCbKeyUpdated m_cbKeyUpdated;
   tCbControlChanged m_cbControlChanged;
 
   mutable std::mutex m_mtxDeviceHandle;

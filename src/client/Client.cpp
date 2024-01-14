@@ -76,6 +76,7 @@ void Client::onInitDevice()
   m_pDevice->setCallbackButtonChanged(std::bind(&Client::buttonChanged, this, _1, _2, _3));
   m_pDevice->setCallbackEncoderChanged(std::bind(&Client::encoderChanged, this, _1, _2, _3));
   m_pDevice->setCallbackKeyChanged(std::bind(&Client::keyChanged, this, _1, _2, _3));
+  m_pDevice->setCallbackKeyUpdated(std::bind(&Client::keyUpdated, this, _1, _2, _3));
   m_pDevice->setCallbackControlChanged(std::bind(&Client::controlChanged, this, _1, _2, _3));
 
   initDevice();
@@ -109,7 +110,7 @@ void Client::onRender()
 
 void Client::buttonChanged(Device::Button button_, bool buttonState_, bool shiftPressed_)
 {
-  M_LOG("[Client] encoderChanged " << static_cast<int>(button_) << " ("
+  M_LOG("[Client] buttonChanged " << static_cast<int>(button_) << " ("
                                    << (buttonState_ ? "clicked " : "released")
                                    << ") "
                                    << (shiftPressed_ ? " SHIFT" : ""));
@@ -133,6 +134,13 @@ void Client::keyChanged(unsigned index_, double value_, bool shiftPressed_)
   M_LOG("[Client] keyChanged " << static_cast<int>(index_) << " (" << value_ << ") "
                                << (shiftPressed_ ? " SHIFT" : ""));
   m_update = true;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Client::keyUpdated(unsigned index_, double value_, bool shiftPressed_)
+{
+  // do nothing
 }
 
 //--------------------------------------------------------------------------------------------------
