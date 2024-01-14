@@ -26,6 +26,7 @@ const uint8_t kMASMK1_epInputPads = 0x84;
 const uint8_t kMASMK1_epInputButtonsAndDials = 0x81;
 const uint8_t kMASMK1_defaultDisplaysBacklight = 0x5C;
 const unsigned kMASMK1_padThreshold = 200;
+const unsigned kMASMK1_encoderMapping[11] = {8, 4, 10, 7, 3, 9, 6, 2, 0, 5, 1};
 } // namespace
 
 //--------------------------------------------------------------------------------------------------
@@ -482,57 +483,35 @@ void MaschineMK1::processEncoders(const Transfer& input_)
 {
   for (uint8_t i = 0; i < kMASMK1_nEncoders; i++)
   {
-    unsigned currentEncValue = (input_.data()[2 + (2 * i)]) | (input_.data()[1 + (2 * i)] << 8);
+    double x = static_cast<double>(input_.data()[1 + (2 * i)]) / 255.0;
+    double y = static_cast<double>(input_.data()[2 + (2 * i)]) / 255.0;
 
-    bool valueIncreased = true;
+    double theta = (std::atan2(y - 0.5, x - 0.5) + M_PI) / (2 * M_PI);
+    double thetaPrev = m_encoderValues[i];
+    m_encoderValues[i] = theta;
 
-    uint8_t x = input_.data()[1 + (2 * i)];
-    uint8_t y = input_.data()[2 + (2 * i)];
-    uint8_t prevX = (m_encoderValues[i] >> 8) & 0xFF;
-    uint8_t prevY = (m_encoderValues[i] & 0xFF);
-
-    if (m_encoderValues[i] == currentEncValue)
+    double delta = theta - thetaPrev;
+    if (delta == 0.0)
     {
       continue;
+    } 
+    else if (delta > 0.5)
+    {
+      delta -= 1.0;
+    }
+    else if (delta < -0.5)
+    {
+      delta += 1.0;
     }
 
-    if (x > 127)
-    {
-      valueIncreased = (y > 127) ? (x < prevX && y >= prevY) : (x >= prevX && y >= prevY);
-    }
-    else
-    {
-      valueIncreased = (y > 127) ? (x < prevX && y < prevY) : (x >= prevX && y < prevY);
-    }
+    bool valueIncreased = delta > 0.0;
+    bool shift = m_buttonStates[static_cast<uint8_t>(Button::Shift)];
 
     if (m_encodersInitialized)
     {
-#define M_ENCODER_CASE(val, index)                                                              \
-  case val:                                                                                     \
-    encoderChanged(index, valueIncreased, m_buttonStates[static_cast<uint8_t>(Button::Shift)]); \
-    break
-
-      switch (i)
-      {
-        M_ENCODER_CASE(0, 8);
-        M_ENCODER_CASE(1, 4);
-        M_ENCODER_CASE(2, 10);
-        M_ENCODER_CASE(3, 7);
-        M_ENCODER_CASE(4, 3);
-        M_ENCODER_CASE(5, 9);
-        M_ENCODER_CASE(6, 6);
-        M_ENCODER_CASE(7, 2);
-        M_ENCODER_CASE(8, 0);
-        M_ENCODER_CASE(9, 5);
-        M_ENCODER_CASE(10, 1);
-
-        default:
-        {
-        }
-      }
-#undef M_ENCODER_CASE
+      encoderChanged(kMASMK1_encoderMapping[i], valueIncreased, shift);
+      encoderChangedRaw(kMASMK1_encoderMapping[i], delta, shift);
     }
-    m_encoderValues[i] = currentEncValue;
   }
   m_encodersInitialized = true;
 }

@@ -118,6 +118,13 @@ void Device::setCallbackEncoderChanged(tCbEncoderChanged cbEncoderChanged_)
 
 //--------------------------------------------------------------------------------------------------
 
+void Device::setCallbackEncoderChangedRaw(tCbEncoderChangedRaw cbEncoderChangedRaw_)
+{
+  m_cbEncoderChangedRaw = cbEncoderChangedRaw_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
 void Device::setCallbackKeyChanged(tCbKeyChanged cbKeyChanged_)
 {
   m_cbKeyChanged = cbKeyChanged_;
@@ -200,6 +207,16 @@ void Device::encoderChanged(unsigned encoder_, bool valueIncreased_, bool shiftP
   if (m_cbEncoderChanged)
   {
     m_cbEncoderChanged(encoder_, valueIncreased_, shiftPressed_);
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void Device::encoderChangedRaw(unsigned encoder_, double delta_, bool shiftPressed_)
+{
+  if (m_cbEncoderChangedRaw)
+  {
+    m_cbEncoderChangedRaw(encoder_, delta_, shiftPressed_);
   }
 }
 

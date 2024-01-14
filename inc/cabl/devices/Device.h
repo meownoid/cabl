@@ -209,6 +209,7 @@ public:
 
   using tCbButtonChanged = std::function<void(Button btn_, bool state_, bool shiftKey_)>;
   using tCbEncoderChanged = std::function<void(unsigned enc_, bool valIncreased_, bool shiftKey_)>;
+  using tCbEncoderChangedRaw = std::function<void(unsigned enc_, double delta_, bool shiftKey_)>;
   using tCbKeyChanged = std::function<void(unsigned index_, double, bool shiftKey_)>;
   using tCbKeyUpdated = std::function<void(unsigned index_, double, bool shiftKey_)>;
   using tCbControlChanged = std::function<void(unsigned pot_, double val_, bool shiftKey_)>;
@@ -252,6 +253,8 @@ public:
 
   void setCallbackEncoderChanged(tCbEncoderChanged cbEncoderChanged_);
 
+  void setCallbackEncoderChangedRaw(tCbEncoderChangedRaw cbEncoderChangedRaw_);
+
   void setCallbackKeyChanged(tCbKeyChanged cbKeyChanged_);
 
   void setCallbackKeyUpdated(tCbKeyUpdated cbKeyUpdated_);
@@ -272,6 +275,8 @@ protected:
   void buttonChanged(Button button_, bool buttonState_, bool shiftPressed_);
 
   void encoderChanged(unsigned encoder_, bool valueIncreased_, bool shiftPressed_);
+
+  void encoderChangedRaw(unsigned encoder_, double delta_, bool shiftPressed_);
 
   void keyChanged(unsigned index_, double value_, bool shiftPressed_);
 
@@ -294,6 +299,7 @@ private:
 
   tCbButtonChanged m_cbButtonChanged;
   tCbEncoderChanged m_cbEncoderChanged;
+  tCbEncoderChangedRaw m_cbEncoderChangedRaw;
   tCbKeyChanged m_cbKeyChanged;
   tCbKeyUpdated m_cbKeyUpdated;
   tCbControlChanged m_cbControlChanged;

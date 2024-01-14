@@ -96,7 +96,7 @@ private:
   tRawData m_buttons;
 
   std::bitset<kMASMK1_nButtons> m_buttonStates;
-  unsigned m_encoderValues[kMASMK1_nEncoders];
+  double m_encoderValues[kMASMK1_nEncoders];
 
   unsigned m_padsData[kMASMK1_nPads];
   std::bitset<kMASMK1_nPads> m_padsStatus;
