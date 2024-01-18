@@ -27,34 +27,8 @@ using namespace std::placeholders;
 
 //--------------------------------------------------------------------------------------------------
 
-Client::Client(DiscoveryPolicy discoveryPolicy_)
-  : m_clientId(Coordinator::instance().registerClient(
-      std::bind(&Client::devicesListChanged, this, std::placeholders::_1)))
-  , m_discoveryPolicy(std::move(discoveryPolicy_))
-{
-  M_LOG("[Client] Client");
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Client::~Client()
-{
-  Coordinator::instance().unregisterClient(m_clientId);
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::init()
-{
-  devicesListChanged(Coordinator::instance().enumerate());
-}
-
-//--------------------------------------------------------------------------------------------------
-
 void Client::onInitDevice()
 {
-  M_LOG("[Client] onInitDevice");
-
   if (!m_pDevice)
   {
     return;
@@ -87,13 +61,6 @@ void Client::onInitDevice()
 
 //--------------------------------------------------------------------------------------------------
 
-void Client::disconnected()
-{
-  M_LOG("[Client] device disconnected");
-}
-
-//--------------------------------------------------------------------------------------------------
-
 void Client::onRender()
 {
   bool expected = true;
@@ -106,82 +73,6 @@ void Client::onRender()
     std::this_thread::yield();
   }
 }
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::buttonChanged(Device::Button button_, bool buttonState_, bool shiftPressed_)
-{
-  M_LOG("[Client] buttonChanged " << static_cast<int>(button_) << " ("
-                                   << (buttonState_ ? "clicked " : "released")
-                                   << ") "
-                                   << (shiftPressed_ ? " SHIFT" : ""));
-  m_update = true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::encoderChanged(unsigned encoder_, bool valueIncreased_, bool shiftPressed_)
-{
-  M_LOG("[Client] encoderChanged " << static_cast<int>(encoder_) << (valueIncreased_ ? "++ " : "--")
-                                   << ") "
-                                   << (shiftPressed_ ? " SHIFT" : ""));
-  m_update = true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::encoderChangedRaw(unsigned encoder_, double delta_, bool shiftPressed_)
-{
-  // do nothing
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::keyChanged(unsigned index_, double value_, bool shiftPressed_)
-{
-  M_LOG("[Client] keyChanged " << static_cast<int>(index_) << " (" << value_ << ") "
-                               << (shiftPressed_ ? " SHIFT" : ""));
-  m_update = true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::keyUpdated(unsigned index_, double value_, bool shiftPressed_)
-{
-  // do nothing
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::controlChanged(unsigned pot_, double value_, bool shiftPressed_)
-{
-  M_LOG("[Client] controlChanged " << static_cast<int>(pot_) << " (" << value_ << ") "
-                                   << (shiftPressed_ ? " SHIFT" : ""));
-  m_update = true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Client::devicesListChanged(Coordinator::tCollDeviceDescriptor deviceDescriptors_)
-{
-  M_LOG("[Client] devicesListChanged : " << deviceDescriptors_.size() << " devices");
-
-  for (const auto& deviceDescriptor : deviceDescriptors_)
-  {
-    if (!m_discoveryPolicy.matches(deviceDescriptor))
-    {
-      continue;
-    }
-    if ((m_pDevice && !m_pDevice->hasDeviceHandle()) || !m_pDevice)
-    {
-      m_pDevice = Coordinator::instance().connect(deviceDescriptor);
-      onInitDevice();
-      break;
-    }
-  }
-}
-
-//--------------------------------------------------------------------------------------------------
 
 } // namespace cabl
 } // namespace sl

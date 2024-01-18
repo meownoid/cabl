@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <thread>
 
+#include <cabl/devices/Coordinator.h>
 #include "DeviceTest.h"
 
 
@@ -19,6 +20,9 @@ using namespace sl::cabl;
 int main(int argc, const char* argv[])
 {
   DeviceTest deviceTest;
+  Coordinator coordinator(&deviceTest);
+  coordinator.scan();
+  coordinator.run();
 
   std::cout << "Type 'q' and hit ENTER to quit." << std::endl;
 

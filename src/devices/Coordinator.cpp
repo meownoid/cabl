@@ -22,7 +22,17 @@ namespace cabl
 
 //--------------------------------------------------------------------------------------------------
 
-std::atomic<unsigned> Coordinator::s_clientCount{0};
+Coordinator::Coordinator(Client* client)
+{
+  M_LOG("Controller Abstraction Library v. " << Lib::version());
+  auto usbDriver = driver(Driver::Type::LibUSB);
+
+  m_pClient = client;
+
+  usbDriver->setHotplugCallback(
+    [this](DeviceDescriptor deviceDescriptor_, bool plugged_) { scan(); }
+  );
+}
 
 //--------------------------------------------------------------------------------------------------
 
@@ -38,24 +48,6 @@ Coordinator::~Coordinator()
 
 //--------------------------------------------------------------------------------------------------
 
-Coordinator::tClientId Coordinator::registerClient(tCbDevicesListChanged cbDevicesListChanged_)
-{
-  std::string clientId{"client-" + std::to_string(s_clientCount.fetch_add(1))};
-  m_collCbDevicesListChanged[clientId] = cbDevicesListChanged_;
-
-  m_clientRegistered = true;
-  return clientId;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Coordinator::unregisterClient(tClientId clientId_)
-{
-  m_collCbDevicesListChanged.erase(clientId_);
-}
-
-//--------------------------------------------------------------------------------------------------
-
 void Coordinator::run()
 {
   bool expected = false;
@@ -65,11 +57,6 @@ void Coordinator::run()
   }
 
   m_cablThread = std::thread([this]() {
-    while(!m_clientRegistered)
-    {
-      std::this_thread::yield();;
-    }
-    scan();
     while (m_running)
     {
       std::lock_guard<std::mutex> lock(m_mtxDevices);
@@ -78,24 +65,11 @@ void Coordinator::run()
         if (device.second)
         {
           device.second->onTick();
-          //! \todo Check tick() result
         }
       }
       std::this_thread::yield();
     }
   });
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Coordinator::tCollDeviceDescriptor Coordinator::enumerate(bool forceScan_)
-{
-  if (forceScan_ || !m_scanDone)
-  {
-    scan();
-  }
-
-  return m_collDeviceDescriptors;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -147,19 +121,6 @@ Coordinator::tDevicePtr Coordinator::connect(const DeviceDescriptor& deviceDescr
   }
 
   return m_collDevices[deviceDescriptor_];
-}
-
-//--------------------------------------------------------------------------------------------------
-
-Coordinator::Coordinator()
-{
-  M_LOG("Controller Abstraction Library v. " << Lib::version());
-  auto usbDriver = driver(Driver::Type::LibUSB);
-
-  usbDriver->setHotplugCallback(
-    [this](DeviceDescriptor deviceDescriptor_, bool plugged_) { scan(); });
-
-  run();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -226,12 +187,13 @@ void Coordinator::scan()
 
   m_scanDone = true;
 
-  if (m_collDeviceDescriptors.size() != deviceDescriptors.size()
-      || !std::equal(m_collDeviceDescriptors.begin(),
-           m_collDeviceDescriptors.end(),
-           deviceDescriptors.begin()))
+  for (const auto& deviceDescriptor : m_collDeviceDescriptors)
   {
-    devicesListChanged();
+    if (!m_pClient->discoveryPolicy().matches(deviceDescriptor))
+    {
+      continue;
+    }
+    m_pClient->setDevice(connect(deviceDescriptor));
   }
 }
 
@@ -247,21 +209,6 @@ bool Coordinator::checkAndAddDeviceDescriptor(const sl::cabl::DeviceDescriptor& 
   }
   m_collDeviceDescriptors.push_back(deviceDescriptor);
   return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-
-void Coordinator::devicesListChanged()
-{
-  M_LOG("[Coordinator]: The devices list has changed");
-  auto devices = enumerate();
-  for (const auto d : m_collCbDevicesListChanged)
-  {
-    if (d.second)
-    {
-      d.second(devices);
-    }
-  }
 }
 
 //--------------------------------------------------------------------------------------------------

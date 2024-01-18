@@ -11,6 +11,7 @@
 #include <map>
 #include <thread>
 
+#include "cabl/client/Client.h"
 #include "cabl/comm/DeviceDescriptor.h"
 #include "cabl/comm/Driver.h"
 #include "cabl/devices/Device.h"
@@ -31,53 +32,34 @@ public:
   using tDevicePtr = std::shared_ptr<Device>;
   using tCollDevices = std::map<DeviceDescriptor, tDevicePtr>;
 
-  using tClientId = std::string;
   using tDriverPtr = std::shared_ptr<Driver>;
   using tCollDrivers = std::map<Driver::Type, tDriverPtr>;
-  using tCbDevicesListChanged = std::function<void(tCollDeviceDescriptor)>;
-  using tCollCbDevicesListChanged = std::map<tClientId, tCbDevicesListChanged>;
 
-  static Coordinator& instance()
-  {
-    static Coordinator instance;
-    return instance;
-  }
-
+  Coordinator(Client* client);
   ~Coordinator();
 
-  tClientId registerClient(tCbDevicesListChanged);
-  void unregisterClient(tClientId);
-
+  void scan();
   void run();
 
-  tCollDeviceDescriptor enumerate(bool forceScan_ = false);
-
-  tDevicePtr connect(const DeviceDescriptor&);
-
 private:
-  Coordinator();
-
-  void scan();
   bool checkAndAddDeviceDescriptor(const DeviceDescriptor&);
-  void devicesListChanged();
+  tDevicePtr connect(const DeviceDescriptor&);
 
   tDriverPtr driver(Driver::Type);
 
   std::thread m_cablThread;
-  std::atomic<bool> m_running{false};
-  std::atomic<bool> m_clientRegistered{false};
 
+  std::atomic<bool> m_running{false};
   std::atomic<bool> m_scanDone{false};
+
   std::mutex m_mtxDevices;
   std::mutex m_mtxDeviceDescriptors;
 
   tCollDrivers m_collDrivers;
-
-  tCollCbDevicesListChanged m_collCbDevicesListChanged;
   tCollDeviceDescriptor m_collDeviceDescriptors;
   tCollDevices m_collDevices;
 
-  static std::atomic<unsigned> s_clientCount;
+  Client* m_pClient{nullptr};
 };
 
 //--------------------------------------------------------------------------------------------------
