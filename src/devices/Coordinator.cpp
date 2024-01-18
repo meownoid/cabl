@@ -186,9 +186,9 @@ void Coordinator::scan()
       M_LOG("[Coordinator] scan: new device found via MIDI");
     }
   }
+#endif
 
   Driver::Type tMainDriver(Driver::Type::LibUSB);
-#endif
 
   for (const auto& deviceDescriptor : driver(tMainDriver)->enumerate())
   {
