@@ -5,8 +5,10 @@
         ##      ##
 ##########      ############################################################# shaduzlabs.com #####*/
 
-#include "ColorDisplay.h"
 #include <cabl/cabl.h>
+#include <cabl/devices/Coordinator.h>
+
+#include "ColorDisplay.h"
 
 
 using namespace sl;
@@ -17,6 +19,9 @@ using namespace sl::cabl;
 int main(int argc, const char* argv[])
 {
   ColorDisplay cd;
+  Coordinator coordinator(&cd);
+  coordinator.scan();
+  coordinator.run();
 
   std::cout << "Type 'q' and hit ENTER to quit." << std::endl;
 

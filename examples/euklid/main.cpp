@@ -8,6 +8,9 @@
 #include <cstdio>
 #include <thread>
 
+#include <cabl/cabl.h>
+#include <cabl/devices/Coordinator.h>
+
 #include "Euklid.h"
 
 
@@ -19,6 +22,9 @@ using namespace sl::cabl;
 int main(int argc, const char* argv[])
 {
   Euklid euklid;
+  Coordinator coordinator(&euklid);
+  coordinator.scan();
+  coordinator.run();
 
   std::cout << "Type 'q' and hit ENTER to quit." << std::endl;
 
