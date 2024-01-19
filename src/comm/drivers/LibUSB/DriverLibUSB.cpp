@@ -98,6 +98,8 @@ namespace cabl
 
 DriverLibUSB::DriverLibUSB() : m_usbThreadRunning(true)
 {
+  M_LOG("[DriverLibUSB] constructor");
+
   libusb_init(&m_pContext);
 #if !defined(NDEBUG)
   libusb_set_option(m_pContext, LIBUSB_OPTION_LOG_LEVEL, 1);
@@ -122,15 +124,13 @@ DriverLibUSB::DriverLibUSB() : m_usbThreadRunning(true)
       libusb_handle_events_timeout_completed(m_pContext, &tv, &completed);
     }
   });
-
-  M_LOG("[LibUSB] initialization");
 }
 
 //--------------------------------------------------------------------------------------------------
 
 DriverLibUSB::~DriverLibUSB()
 {
-  M_LOG("[LibUSB] shutting down...");
+  M_LOG("[DriverLibUSB] destructor");
   m_usbThreadRunning = false;
 
   if (m_usbThread.joinable())
@@ -138,15 +138,13 @@ DriverLibUSB::~DriverLibUSB()
     m_usbThread.join();
   }
   libusb_exit(m_pContext);
-
-  M_LOG("[LibUSB] exit");
 }
 
 //--------------------------------------------------------------------------------------------------
 
 Driver::tCollDeviceDescriptor DriverLibUSB::enumerate()
 {
-  M_LOG("[LibUSB] enumerate");
+  M_LOG("[DriverLibUSB] enumerate");
   Driver::tCollDeviceDescriptor collDeviceDescriptor;
 
   libusb_device** devices;
@@ -170,12 +168,12 @@ Driver::tCollDeviceDescriptor DriverLibUSB::enumerate()
 
     if (strSerialNum.empty())
     {
-      M_LOG("[LibUSB] enumerate: " << strProd << "(" << strManuf << ")");
+      M_LOG("[DriverLibUSB] enumerate: " << strProd << "(" << strManuf << ")");
     }
     else
     {
-      M_LOG("[LibUSB] enumerate: " << strProd << "(" << strManuf << ") with S/N \"" << strSerialNum
-                                   << "\"");
+      M_LOG("[DriverLibUSB] enumerate: " << strProd << "(" << strManuf << ") with S/N \"" << strSerialNum
+                                         << "\"");
     }
 #endif
     libusb_close(pHandle);
@@ -193,8 +191,8 @@ Driver::tCollDeviceDescriptor DriverLibUSB::enumerate()
 
 tPtr<DeviceHandleImpl> DriverLibUSB::connect(const DeviceDescriptor& device_)
 {
-  M_LOG("[LibUSB] connecting to " << device_.vendorId() << ":" << device_.productId() << ":"
-                                  << device_.serialNumber());
+  M_LOG("[DriverLibUSB] connecting to " << device_.vendorId() << ":" << device_.productId() << ":"
+                                        << device_.serialNumber());
   bool bConnected = false;
   libusb_device** devices;
   ssize_t nDevices = libusb_get_device_list(m_pContext, &devices);
@@ -211,19 +209,20 @@ tPtr<DeviceHandleImpl> DriverLibUSB::connect(const DeviceDescriptor& device_)
     }
 
     int e = libusb_open(device, &pCurrentDevice);
-
-    if (e == 0)
+    if (e != 0)
     {
-      std::string strSerialNum = ::stringDescriptor(pCurrentDevice, descriptor.iSerialNumber);
-      if (strSerialNum == device_.serialNumber())
-      {
-        bConnected = true;
-        break;
-      }
-      else
-      {
-        libusb_close(pCurrentDevice);
-      }
+      continue;
+    }
+
+    std::string strSerialNum = ::stringDescriptor(pCurrentDevice, descriptor.iSerialNumber);
+    if (strSerialNum == device_.serialNumber())
+    {
+      bConnected = true;
+      break;
+    }
+    else
+    {
+      libusb_close(pCurrentDevice);
     }
   }
 
@@ -231,9 +230,10 @@ tPtr<DeviceHandleImpl> DriverLibUSB::connect(const DeviceDescriptor& device_)
 
   libusb_set_configuration(pCurrentDevice, 1);
 
-  if (LIBUSB_ERROR_NOT_SUPPORTED == libusb_set_auto_detach_kernel_driver(pCurrentDevice, 1))
+  int e = libusb_set_auto_detach_kernel_driver(pCurrentDevice, 1);
+  if (e == LIBUSB_ERROR_NOT_SUPPORTED)
   {
-    M_LOG("[LibUSB] note: automatic kernel driver detaching is not supported on this platform");
+    M_LOG("[DriverLibUSB] note: automatic kernel driver detaching is not supported on this platform");
   }
 
   libusb_claim_interface(pCurrentDevice, 0);
@@ -243,8 +243,8 @@ tPtr<DeviceHandleImpl> DriverLibUSB::connect(const DeviceDescriptor& device_)
   if (pCurrentDevice == nullptr || !bConnected)
     return nullptr;
 
-  M_LOG("[LibUSB] CONNECTED to " << device_.vendorId() << ":" << device_.productId() << ":"
-                                 << device_.serialNumber());
+  M_LOG("[DriverLibUSB] connected to " << device_.vendorId() << ":" << device_.productId() << ":"
+                                       << device_.serialNumber());
 
   return tPtr<DeviceHandleImpl>(new DeviceHandleLibUSB(pCurrentDevice));
 }
@@ -254,6 +254,13 @@ tPtr<DeviceHandleImpl> DriverLibUSB::connect(const DeviceDescriptor& device_)
 void DriverLibUSB::setHotplugCallback(Driver::tCbHotplug cbHotplug_)
 {
   m_cbHotplug = cbHotplug_;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+void DriverLibUSB::removeHotplugCallback()
+{
+  m_cbHotplug = nullptr;
 }
 
 //--------------------------------------------------------------------------------------------------

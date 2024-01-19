@@ -35,6 +35,7 @@ public:
   tPtr<DeviceHandleImpl> connect(const DeviceDescriptor&) override;
 
   void setHotplugCallback(Driver::tCbHotplug) override;
+  void removeHotplugCallback() override;
 
   void hotplug(const DeviceDescriptor&, bool);
 
@@ -43,8 +44,8 @@ private:
   libusb_hotplug_callback_handle* m_pHotplugHandle{nullptr};
 
   std::thread m_usbThread;
-  libusb_context* m_pContext;
-  Driver::tCbHotplug m_cbHotplug;
+  libusb_context* m_pContext = nullptr;
+  Driver::tCbHotplug m_cbHotplug = nullptr;
 };
 
 //--------------------------------------------------------------------------------------------------

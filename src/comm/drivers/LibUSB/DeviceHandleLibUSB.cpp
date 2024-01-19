@@ -25,6 +25,7 @@ namespace cabl
 DeviceHandleLibUSB::DeviceHandleLibUSB(libusb_device_handle* pCurrentDevice_)
   : m_pCurrentDevice(pCurrentDevice_)
 {
+  M_LOG("[DeviceHandleLibUSB] constructor");
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -39,8 +40,12 @@ DeviceHandleLibUSB::~DeviceHandleLibUSB()
 
 void DeviceHandleLibUSB::disconnect()
 {
+  M_LOG("[DeviceHandleLibUSB] disconnect");
+
   if (m_pCurrentDevice == nullptr)
+  {
     return;
+  }
   
   libusb_close(m_pCurrentDevice);
   m_pCurrentDevice = nullptr;

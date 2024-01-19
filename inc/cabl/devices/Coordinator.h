@@ -40,6 +40,7 @@ public:
 
   void scan();
   void run();
+  void stop();
 
 private:
   bool checkAndAddDeviceDescriptor(const DeviceDescriptor&);

@@ -83,5 +83,12 @@ void Driver::setHotplugCallback(Driver::tCbHotplug cbHotplug_)
 
 //--------------------------------------------------------------------------------------------------
 
+void Driver::removeHotplugCallback()
+{
+  m_pImpl->removeHotplugCallback();
+}
+
+//--------------------------------------------------------------------------------------------------
+
 } // namespace cabl
 } // namespace sl

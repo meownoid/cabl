@@ -58,6 +58,7 @@ public:
   tCollDeviceDescriptor enumerate();
   tPtr<DeviceHandle> connect(const DeviceDescriptor&);
   void setHotplugCallback(tCbHotplug);
+  void removeHotplugCallback();
 
 private:
   tPtr<DriverImpl> m_pImpl;

@@ -24,12 +24,10 @@ namespace cabl
 
 Coordinator::Coordinator(Client* client)
 {
-  M_LOG("Controller Abstraction Library v. " << Lib::version());
-  auto usbDriver = driver(Driver::Type::LibUSB);
-
+  M_LOG("[Coordinator] constructor");
   m_pClient = client;
 
-  usbDriver->setHotplugCallback(
+  driver(Driver::Type::LibUSB)->setHotplugCallback(
     [this](DeviceDescriptor deviceDescriptor_, bool plugged_) { scan(); }
   );
 }
@@ -39,20 +37,26 @@ Coordinator::Coordinator(Client* client)
 Coordinator::~Coordinator()
 {
   M_LOG("[Coordinator] destructor");
-  m_running = false;
-  if (m_cablThread.joinable())
+
+  driver(Driver::Type::LibUSB)->removeHotplugCallback();
+
+  for (auto& device : m_collDevices)
   {
-    m_cablThread.join();
+    device.second->onDisconnect();
   }
+
+  stop();
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void Coordinator::run()
 {
+  M_LOG("[Coordinator] run");
   bool expected = false;
   if (!m_running.compare_exchange_strong(expected, true))
   {
+    M_LOG("[Coordinator] already running");
     return;
   }
 
@@ -74,8 +78,28 @@ void Coordinator::run()
 
 //--------------------------------------------------------------------------------------------------
 
+void Coordinator::stop()
+{
+  M_LOG("[Coordinator] stop");
+  bool expected = true;
+  if (!m_running.compare_exchange_strong(expected, false))
+  {
+    M_LOG("[Coordinator] already stopped");
+    return;
+  }
+
+  if (m_cablThread.joinable())
+  {
+    m_cablThread.join();
+  }
+}
+
+//--------------------------------------------------------------------------------------------------
+
 Coordinator::tDevicePtr Coordinator::connect(const DeviceDescriptor& deviceDescriptor_)
 {
+  M_LOG("[Coordinator] connect");
+
   if (!deviceDescriptor_)
   {
     return nullptr;
@@ -127,6 +151,8 @@ Coordinator::tDevicePtr Coordinator::connect(const DeviceDescriptor& deviceDescr
 
 void Coordinator::scan()
 {
+  M_LOG("[Coordinator] scan"); 
+
   std::lock_guard<std::mutex> lock(m_mtxDeviceDescriptors);
   tCollDeviceDescriptor deviceDescriptors{m_collDeviceDescriptors};
   m_collDeviceDescriptors.clear();
