@@ -64,7 +64,7 @@ bool DeviceHandleLibUSB::read(Transfer& transfer_, uint8_t endpoint_)
   if ((result == LIBUSB_SUCCESS) && (nBytesRead > 0))
   {
     transfer_.setData(m_inputBuffer.data(), nBytesRead);
-    return transfer_;
+    return true;
   }
 
   M_LOG(

@@ -100,7 +100,7 @@ DriverLibUSB::DriverLibUSB() : m_usbThreadRunning(true)
 {
   libusb_init(&m_pContext);
 #if !defined(NDEBUG)
-  libusb_set_debug(m_pContext, 1);
+  libusb_set_option(m_pContext, LIBUSB_OPTION_LOG_LEVEL, 1);
 #endif
 
   libusb_hotplug_register_callback(m_pContext,
@@ -115,10 +115,11 @@ DriverLibUSB::DriverLibUSB() : m_usbThreadRunning(true)
     m_pHotplugHandle);
 
   m_usbThread = std::thread([this]() {
+    struct timeval tv = {0, 100000};
     int completed = 0;
     while (m_usbThreadRunning)
     {
-      libusb_handle_events_completed(m_pContext, &completed);
+      libusb_handle_events_timeout_completed(m_pContext, &tv, &completed);
     }
   });
 
@@ -131,16 +132,13 @@ DriverLibUSB::~DriverLibUSB()
 {
   M_LOG("[LibUSB] shutting down...");
   m_usbThreadRunning = false;
-  struct timeval tv = {1, 0};
-  int completed = 0;
 
-  libusb_handle_events_timeout_completed(m_pContext, &tv, &completed);
-  // libusb_hotplug_deregister_callback(&callback);
-  libusb_exit(m_pContext);
   if (m_usbThread.joinable())
   {
     m_usbThread.join();
   }
+  libusb_exit(m_pContext);
+
   M_LOG("[LibUSB] exit");
 }
 
