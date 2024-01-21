@@ -27,9 +27,9 @@ Coordinator::Coordinator(Client* client)
   M_LOG("[Coordinator] constructor");
   m_pClient = client;
 
-  driver(Driver::Type::LibUSB)->setHotplugCallback(
-    [this](DeviceDescriptor deviceDescriptor_, bool plugged_) { scan(); }
-  );
+  // driver(Driver::Type::LibUSB)->setHotplugCallback(
+  //   [this](DeviceDescriptor deviceDescriptor_, bool plugged_) { scan(); }
+  // );
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ Coordinator::~Coordinator()
 {
   M_LOG("[Coordinator] destructor");
 
-  driver(Driver::Type::LibUSB)->removeHotplugCallback();
+  // driver(Driver::Type::LibUSB)->removeHotplugCallback();
 
   for (auto& device : m_collDevices)
   {
